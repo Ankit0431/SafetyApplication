@@ -1,6 +1,7 @@
 package com.example.safetyapplication;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -25,18 +26,54 @@ public class PanicModeManager {
 
     private static final String CHANNEL_ID = "panic_notification_channel";
     private static final int NOTIFICATION_ID = 1;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
+    private static final int SMS_PERMISSION_REQUEST_CODE = 101;
+
 
     public static void triggerPanicMode(Context context) {
-        // Send SMS to emergency contacts with current location
+        // Check if location and SMS permissions are granted
+        if (checkLocationPermission(context) && checkSMSPermission(context)) {
+            // Location and SMS permissions granted, proceed with panic mode
+            performPanicMode(context);
+        } else {
+            // Request location and SMS permissions from the user
+            requestPermissions((Activity) context);
+        }
+    }
+
+    private static boolean checkLocationPermission(Context context) {
+        // Check if location permissions are granted
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private static boolean checkSMSPermission(Context context) {
+        // Check if SMS permissions are granted
+        return ActivityCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private static void requestPermissions(Activity activity) {
+        // Create an array of permissions to request
+        String[] permissions = {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.SEND_SMS
+        };
+
+        // Request location and SMS permissions from the user
+        ActivityCompat.requestPermissions(activity, permissions, LOCATION_PERMISSION_REQUEST_CODE);
+    }
+
+
+    private static void performPanicMode(Context context) {
         Location currentLocation = getCurrentLocation(context);
         List<String> emergencyContacts = getEmergencyContacts(context);
 
-        for (String contact : emergencyContacts) {
-            assert currentLocation != null;
-            sendSMS(contact, "Help! I am in danger. My current location: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+        if (currentLocation != null) {
+            for (String contact : emergencyContacts) {
+                sendSMS(contact, "Help! I am in danger. My current location: " + currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+            }
+        } else {
+            requestPermissions((Activity) context);
         }
-
-        // Show notification
         showNotification(context);
     }
 
@@ -46,7 +83,7 @@ public class PanicModeManager {
         // Check for permissions
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // Handle the case where permissions are not granted
+                requestPermissions((Activity) context);
                 return null;
             }
 

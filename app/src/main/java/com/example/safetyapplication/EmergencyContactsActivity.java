@@ -1,6 +1,8 @@
 package com.example.safetyapplication;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -84,7 +86,6 @@ public class EmergencyContactsActivity extends AppCompatActivity {
                     deleteContact(contact);
                     displayContacts();
                     clearInputFields();
-                    Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(EmergencyContactsActivity.this, "Contact cannot be empty", Toast.LENGTH_SHORT).show();
                 }
@@ -131,8 +132,27 @@ public class EmergencyContactsActivity extends AppCompatActivity {
         database.insert("contacts", null, values);
     }
 
-    private void deleteContact(String contact) {
-        database.delete("contacts", "contact = ?", new String[]{contact});
+//    private void deleteContact(String contact) {
+//        database.delete("contacts", "contact = ?", new String[]{contact});
+//    }
+    private void deleteContact(final String contact) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirmation")
+                .setMessage("Are you sure you want to delete this contact?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Delete the contact from the database
+                        database.delete("contacts", "contact = ?", new String[]{contact});
+                        //Confirmation Toast
+                        Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
+                        //Update the ListView
+                        displayContacts();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+
     }
 
     private void updateContact(String name, String newContact, String oldContact) {
