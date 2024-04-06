@@ -1,11 +1,16 @@
 package com.example.safetyapplication;
 //1
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,13 +20,15 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.Manifest;
 import android.telephony.SmsManager;
+
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PanicModeManager {
+public class PanicModeManager extends BroadcastReceiver {
 
     private static final String CHANNEL_ID = "panic_notification_channel";
     private static final int NOTIFICATION_ID = 1;
@@ -73,7 +80,7 @@ public class PanicModeManager {
         } else {
             requestPermissions((Activity) context);
         }
-        showNotification(context);
+        showNotification(context, emergencyContacts);
     }
 
     private static Location getCurrentLocation(Context context) {
@@ -153,31 +160,49 @@ public class PanicModeManager {
         }
     }
 
-    private static void showNotification(Context context) {
+    @SuppressLint("MissingPermission")
+    public static void showNotification(Context context, List<String> emergencyContacts) {
         // Create notification channel (required for Android 8.0 and above)
         createNotificationChannel(context);
 
         // Build notification
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "12")
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle("Panic Mode Activated")
-                .setContentText("Emergency message sent to your contacts.")
-                .setPriority(NotificationCompat.PRIORITY_HIGH);
+                .setContentText("Tap to send relieved text to your contacts.")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true); // Automatically dismiss the notification when clicked
+
+        // Create an intent to handle the emergency message sending
+        Intent sendMessagesIntent = new Intent(context, PanicModeManager.class);
+        sendMessagesIntent.setAction("SEND_EMERGENCY_MESSAGES");
+        sendMessagesIntent.putStringArrayListExtra("emergencyContacts", (ArrayList<String>) emergencyContacts);
+        PendingIntent pendingIntent = PendingIntent.getService(context, 0, sendMessagesIntent, PendingIntent.FLAG_IMMUTABLE);
+        builder.setContentIntent(pendingIntent);  // Set the pending intent
 
         // Show notification
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        try {
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
-        }catch (SecurityException E){
-            //because it just wont let me run without it
+        notificationManager.notify(123, builder.build());
+    }
+
+
+    public void onReceive(Context context, Intent intent) {
+        if (intent != null && "SEND_EMERGENCY_MESSAGES".equals(intent.getAction())) {
+            List<String> emergencyContacts = intent.getStringArrayListExtra("emergencyContacts");
+            if (emergencyContacts != null) {
+                for (String contact : emergencyContacts) {
+                    sendSMS(contact, "I am fine now");
+                }
+            }
         }
     }
+
 
     private static void createNotificationChannel(Context context) {
         CharSequence name = "Panic Notification Channel";
         String description = "Channel for panic mode notifications";
-        int importance = NotificationManager.IMPORTANCE_DEFAULT;
-        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        NotificationChannel channel = new NotificationChannel("12", name, importance);
         channel.setDescription(description);
         NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
         notificationManager.createNotificationChannel(channel);

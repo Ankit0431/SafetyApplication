@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background1"
-    tools:context=".MainActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background1">
 
     <TextView
         android:id="@+id/safety"
@@ -13,12 +12,12 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="30dp"
-        android:layout_marginTop="100dp"
+        android:layout_marginTop="200dp"
         android:gravity="center"
-        android:text="Safety Application"
+        android:text="Safety "
         android:textColor="#00008B"
-        android:textSize="40dp"
-        tools:layout_editor_absoluteX="102dp"
+        android:textSize="55dp"
+        tools:layout_editor_absoluteX="108dp"
         tools:layout_editor_absoluteY="186dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.604"
@@ -26,39 +25,40 @@
         app:layout_constraintTop_toTopOf="parent"
         />
 
-    <Button
-        android:id="@+id/manage_contacts_button"
+    <TextView
+        android:id="@+id/app"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="250dp"
-        android:text="Manage Emergency Contacts"
-        android:backgroundTint="#00008B"
-        android:textColor="#87CEEB"
-        android:textSize="20dp"
+        android:layout_marginTop="300dp"
+        android:text="  Application "
+        android:textColor="#00008B"
+        android:textSize="55dp"
+        tools:layout_editor_absoluteX="58dp"
+        tools:layout_editor_absoluteY="309dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.604"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/safety"
 
+        />
     <Button
-        android:id="@+id/panic_button"
+        android:id="@+id/next_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
-        android:text="Panic Button"
-        android:backgroundTint="#FF0000"
-        android:textColor="#87CEEB"
-        android:textSize="35dp"
+        android:layout_marginTop="500dp"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="60dp"
+        android:textColor="	#FFFFFF"
+        android:text="Next"
+        android:textSize="50dp"
+        tools:layout_editor_absoluteX="200dp"
+        tools:layout_editor_absoluteY="600dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.539"
+        app:layout_constraintHorizontal_bias="0.604"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/manage_contacts_button"
-        android:interpolator="@android:anim/accelerate_interpolator"
-        android:fromAlpha="0.0"
-        android:toAlpha="1.0"
-        android:duration="50"
-        android:repeatMode="reverse"
-        android:repeatCount="6"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/app"
+        android:backgroundTint="#00008B"
         />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

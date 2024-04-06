@@ -1,6 +1,8 @@
 package com.example.safetyapplication;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -25,6 +27,7 @@ public class EmergencyContactsActivity extends AppCompatActivity {
 
     private SQLiteDatabase database;
     private ArrayAdapter<String> contactsAdapter;
+    private  int selectedPosition = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +52,7 @@ public class EmergencyContactsActivity extends AppCompatActivity {
         contactsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                selectedPosition = position;
                 String item = (String) parent.getItemAtPosition(position);
                 String[] parts = item.split(": ");
                 if (parts.length == 2) {
@@ -79,12 +83,32 @@ public class EmergencyContactsActivity extends AppCompatActivity {
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String contact = contactEditText.getText().toString();
+                final String contact = contactEditText.getText().toString();
                 if (!contact.isEmpty()) {
-                    deleteContact(contact);
-                    displayContacts();
-                    clearInputFields();
-                    Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
+                    // Create a confirmation dialog
+                    AlertDialog.Builder builder = new AlertDialog.Builder(EmergencyContactsActivity.this);
+                    builder.setTitle("Confirm Deletion");
+                    builder.setMessage("Are you sure you want to delete this contact?");
+                    builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User clicked Yes, delete the contact
+                            deleteContact(contact);
+                            displayContacts();
+                            clearInputFields();
+                            Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // User clicked No, do nothing
+                            dialog.dismiss(); // Dismiss the dialog
+                        }
+                    });
+                    // Create and show the dialog
+                    AlertDialog dialog = builder.create();
+                    dialog.show();
                 } else {
                     Toast.makeText(EmergencyContactsActivity.this, "Contact cannot be empty", Toast.LENGTH_SHORT).show();
                 }
@@ -97,13 +121,9 @@ public class EmergencyContactsActivity extends AppCompatActivity {
                 String name = nameEditText.getText().toString();
                 String contact = contactEditText.getText().toString();
                 if (!name.isEmpty() && !contact.isEmpty()) {
-                    // Check if any item is selected
-                    if (contactsListView.getAdapter().getCount() > 0 && contactsListView.getSelectedItemPosition() != AdapterView.INVALID_POSITION) {
-                        // Get the selected item
-                        String selectedContact = contactsAdapter.getItem(contactsListView.getSelectedItemPosition());
-                        // Split the selected item to retrieve old name and old contact
+                    if (selectedPosition != -1) { // Check if any item is selected
+                        String selectedContact = contactsAdapter.getItem(selectedPosition);
                         String[] parts = selectedContact.split(": ");
-                        String oldName = parts[0].trim();
                         String oldContact = parts[1].trim();
                         updateContact(name, contact, oldContact);
                         displayContacts();
@@ -122,6 +142,7 @@ public class EmergencyContactsActivity extends AppCompatActivity {
     }
 
     private void displayContacts() {
+
         ArrayList<String> contactsList = new ArrayList<>();
         Cursor cursor = database.rawQuery("SELECT * FROM contacts", null);
         if (cursor.moveToFirst()) {
