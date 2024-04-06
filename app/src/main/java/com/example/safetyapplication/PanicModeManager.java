@@ -1,5 +1,5 @@
 package com.example.safetyapplication;
-
+//1
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -14,7 +14,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.Manifest;
 import android.telephony.SmsManager;
-
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -85,9 +84,19 @@ public class PanicModeManager {
         // Query the database for emergency contacts
         Cursor cursor = database.query("contacts", new String[]{"contact"}, null, null, null, null, null);
 
+        // Check if the cursor has the "contact" column
+        int columnIndex = cursor.getColumnIndex("contact");
+        if (columnIndex < 0) {
+            // Handle the case where the column does not exist
+            // For example, log an error or return an empty list
+            cursor.close();
+            database.close();
+            return emergencyContacts;
+        }
+
         // Iterate through the cursor and add contacts to the list
         while (cursor.moveToNext()) {
-            @SuppressLint("Range") String contact = cursor.getString(cursor.getColumnIndex("contact"));
+            String contact = cursor.getString(columnIndex);
             emergencyContacts.add(contact);
         }
         // Close cursor and database
@@ -96,6 +105,7 @@ public class PanicModeManager {
 
         return emergencyContacts;
     }
+
 
     private static void sendSMS(String phoneNumber, String message) {
         try {

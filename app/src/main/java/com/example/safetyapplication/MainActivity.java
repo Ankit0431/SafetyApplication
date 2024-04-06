@@ -17,7 +17,9 @@ public class MainActivity extends AppCompatActivity {
         Button manageContactsButton = findViewById(R.id.manage_contacts_button);
 
         // Set OnClickListener for the "Manage Contacts" button
-        manageContactsButton.setOnClickListener(new View.OnClickListener() {
+        manageContactsButton.setOnClickListener
+
+                (new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Start the EmergencyContactsActivity when the button is clicked

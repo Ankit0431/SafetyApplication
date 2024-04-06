@@ -26,6 +26,10 @@ public class EmergencyContactsActivity extends AppCompatActivity {
     private SQLiteDatabase database;
     private ArrayAdapter<String> contactsAdapter;
 
+    // Variables to hold the currently selected contact's original name and contact for editing
+    private String selectedContactName = null;
+    private String selectedContactNumber = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,10 +42,7 @@ public class EmergencyContactsActivity extends AppCompatActivity {
         editButton = findViewById(R.id.editButton);
         contactsListView = findViewById(R.id.emergency_contacts_list);
 
-        // Open or create the database
         database = openOrCreateDatabase("EmergencyContacts.db", MODE_PRIVATE, null);
-
-        // Create the contacts table if it doesn't exist
         database.execSQL("CREATE TABLE IF NOT EXISTS contacts (name TEXT, contact TEXT)");
 
         displayContacts();
@@ -52,59 +53,52 @@ public class EmergencyContactsActivity extends AppCompatActivity {
                 String item = (String) parent.getItemAtPosition(position);
                 String[] parts = item.split(": ");
                 if (parts.length == 2) {
-                    String name = parts[0].trim();
-                    String contact = parts[1].trim();
-                    nameEditText.setText(name);
-                    contactEditText.setText(contact);
+                    selectedContactName = parts[0].trim();
+                    selectedContactNumber = parts[1].trim();
+                    nameEditText.setText(selectedContactName);
+                    contactEditText.setText(selectedContactNumber);
                 }
             }
         });
 
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = nameEditText.getText().toString();
-                String contact = contactEditText.getText().toString();
-                if (!name.isEmpty() && !contact.isEmpty()) {
-                    insertContact(name, contact);
-                    displayContacts();
-                    clearInputFields();
-                    Toast.makeText(EmergencyContactsActivity.this, "Emergency contact added", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(EmergencyContactsActivity.this, "Name and Contact cannot be empty", Toast.LENGTH_SHORT).show();
-                }
+        addButton.setOnClickListener(v -> {
+            String name = nameEditText.getText().toString();
+            String contact = contactEditText.getText().toString();
+            if (!name.isEmpty() && !contact.isEmpty()) {
+                insertContact(name, contact);
+                displayContacts();
+                clearInputFields();
+                Toast.makeText(EmergencyContactsActivity.this, "Emergency contact added", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(EmergencyContactsActivity.this, "Name and Contact cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
 
-        deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String contact = contactEditText.getText().toString();
-                if (!contact.isEmpty()) {
-                    deleteContact(contact);
-                    displayContacts();
-                    clearInputFields();
-                    Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(EmergencyContactsActivity.this, "Contact cannot be empty", Toast.LENGTH_SHORT).show();
-                }
+        deleteButton.setOnClickListener(v -> {
+            if (!selectedContactNumber.isEmpty()) {
+                deleteContact(selectedContactNumber);
+                displayContacts();
+                clearInputFields();
+                Toast.makeText(EmergencyContactsActivity.this, "Emergency contact deleted", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(EmergencyContactsActivity.this, "Select a contact to delete", Toast.LENGTH_SHORT).show();
             }
         });
 
-        editButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = nameEditText.getText().toString();
-                String contact = contactEditText.getText().toString();
-                if (!name.isEmpty() && !contact.isEmpty()) {
-                    String oldContact = contactsAdapter.getItem(contactsListView.getSelectedItemPosition());
-                    updateContact(name, contact, oldContact);
+        editButton.setOnClickListener(v -> {
+            String newName = nameEditText.getText().toString();
+            String newContact = contactEditText.getText().toString();
+            if (!newName.isEmpty() && !newContact.isEmpty()) {
+                if (selectedContactName != null && selectedContactNumber != null) {
+                    updateContact(newName, newContact, selectedContactNumber);
                     displayContacts();
                     clearInputFields();
                     Toast.makeText(EmergencyContactsActivity.this, "Emergency contact edited", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(EmergencyContactsActivity.this, "Name and Contact cannot be empty", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EmergencyContactsActivity.this, "Please select a contact to edit", Toast.LENGTH_SHORT).show();
                 }
+            } else {
+                Toast.makeText(EmergencyContactsActivity.this, "Name and Contact cannot be empty", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -145,5 +139,7 @@ public class EmergencyContactsActivity extends AppCompatActivity {
     private void clearInputFields() {
         nameEditText.setText("");
         contactEditText.setText("");
+        selectedContactName = null;
+        selectedContactNumber = null; // Clear the selected contact info after editing
     }
 }
